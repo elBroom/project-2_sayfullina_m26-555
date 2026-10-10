@@ -1,4 +1,7 @@
+.DS_Store
+.idea/
 .venv
 dist/
 __pycache__/
 *.egg-info
+db_meta.json
