@@ -1,6 +1,9 @@
 build:
 	uv build
 
+install:
+    uv tool install dist/*.whl
+
 check:
 	uvx twine check dist/*
 
