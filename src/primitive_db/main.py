@@ -3,5 +3,5 @@ from .engine import run
 
 
 def main():
-    print('***База данных***')
+    print('***Операции с данными***')
     run()

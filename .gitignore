@@ -2,6 +2,8 @@
 .idea/
 .venv
 dist/
+data/
 __pycache__/
 *.egg-info
 db_meta.json
+database

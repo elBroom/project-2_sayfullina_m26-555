@@ -1,13 +1,14 @@
 [project]
 name = "primitive-db"
 version = "0.1.0"
-description = "Add your description here"
+description = "Примитивная база данных"
 readme = "README.md"
 authors = [
     { name = "Zarina Sayfullina", email = "zarina1458@yandex.ru" }
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "prettytable>=3.18.0",
     "prompt>=0.4.1",
 ]
 
