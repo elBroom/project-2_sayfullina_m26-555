@@ -1,10 +1,12 @@
 from prettytable import PrettyTable
 
+from .decorators import confirm_action, handle_db_errors, log_time
 from .utils import load_table_data
 
 
+@handle_db_errors
 def create_table(metadata: dict, table_name: str, columns: list) -> dict:
-	"""Создание и валидация таблицы"."""
+	"""Создание и валидация таблицы."""
 	if table_name in metadata:
 		raise ValueError(f'Таблица "{table_name}" уже существует')
 
@@ -30,40 +32,35 @@ def valid_column(column: str):
 	if val[1] not in ('int', 'bool', 'str'):
 		raise ValueError(f'Тип колонки "{val[1]}" не поддерживается')
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata: dict, table_name: str) -> dict:
 	"""Удаление таблицы."""
-	try:
-		del metadata[table_name]
-		print(f'Таблица "{table_name}" успешно удалена.')
-	except KeyError:
-		raise ValueError(f'Таблица "{table_name}" не существует')
+	del metadata[table_name]
+	print(f'Таблица "{table_name}" успешно удалена.')
 	
 	return metadata
-
 
 def list_tables(metadata: dict):
 	"""Получение наличия таблиц."""
 	for table_name in metadata.keys():
 		print(f'- {table_name}')
 
-
+@handle_db_errors
 def info_table(metadata: dict, table_name: str, cnt: int) -> dict:
 	"""Получение информации таблицы."""
-	try:
-		print(f'Таблица: {table_name}')
-		print(f'Столбцы: {', '.join(metadata[table_name])}')
-		print(f'Количество записей: {cnt}')
-	except KeyError:
-		raise ValueError(f'Таблица "{table_name}" не существует')
+	columns = metadata[table_name]
+
+	print(f'Таблица: {table_name}')
+	print(f'Столбцы: {', '.join(columns)}')
+	print(f'Количество записей: {cnt}')
 
 	return metadata
 
-
+@handle_db_errors
+@log_time
 def insert(metadata: dict, table_name: str, values: list) -> dict:
 	"""Вставка в таблицу."""
-	if table_name not in metadata:
-		raise ValueError(f'Таблица "{table_name}" не существует')
-
 	if len(values) != len(metadata[table_name]) - 1:
 		raise ValueError('Количество переданных значений не равно количеству столбцов')
 
@@ -71,14 +68,14 @@ def insert(metadata: dict, table_name: str, values: list) -> dict:
 	# Валидирует типы данных для каждого значения в соответствии со схемой в metadata.
 	for column, val in zip(metadata[table_name][1:], values):
 		name, _type = column.split(':')
-		try:
-			data[name] = validate_value(_type, val)
-		except ValueError:
+		data[name] = validate_value(_type, val)
+		if data[name] is None:
 			raise ValueError(f"Для колонки {name} ожидается тип {_type}")
 
 	print(f'Запись с ID={data["ID"]} успешно добавлена в таблицу "{table_name}".')
 	return data
 
+@log_time
 def select(table_data: list, where_clause: dict|None=None):
 	"""Получение данных таблицы."""
 	if where_clause is None:
@@ -120,6 +117,7 @@ def update(table_data: list, set_clause: dict, where_clause: dict) -> list:
 		raise ValueError(f'Запись с условием {key} = {val} не существует')
 	return table_data
 
+@confirm_action("удаление записи")
 def delete(table_data: list, where_clause: dict):
 	"""Удаление данных таблице."""
 	key, val = next(iter(where_clause.items()))
@@ -135,17 +133,19 @@ def delete(table_data: list, where_clause: dict):
 	if last_id:
 		print(f'Запись с ID={last_id} успешно удалена.')
 	else:
-		raise ValueError(f'Запись с условием {key} = {val} не существует')
+		print(f'Запись с условием {key} = {val} не существует')
 
 	return new_rows
 
 def load_last_id(table_name: str) -> int:
+	"""Получение последнего ID."""
 	data = load_table_data(table_name)
 	if len(data) == 0:
 		return 0
 	return data[len(data) - 1]["ID"]
 
 def validate_value(_type, val):
+	"""Валидация значений."""
 	match _type:
 		case 'int':
 			if val.isdigit():
@@ -156,4 +156,4 @@ def validate_value(_type, val):
 		case 'str':
 			if val.startswith('"'):
 				return val.strip('"')
-	raise ValueError
+	return None

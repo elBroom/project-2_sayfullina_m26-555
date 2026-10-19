@@ -31,11 +31,13 @@ def run():
                 case 'create_table':
                     metadate = create_table(metadate, args[1], args[2:])
                     save_metadata(FILE_META, metadate)
+                    save_table_data(args[1], [])
                 case 'list_tables':
                     list_tables(metadate)
                 case 'drop_table':
                     metadate = drop_table(metadate, args[1])
                     save_metadata(FILE_META, metadate)
+                    save_table_data(args[1], [])
                 case 'insert':
                     table, values = parse_insert(user_input)
                     table_data = load_table_data(table)
@@ -65,11 +67,8 @@ def run():
                     print_help()
                 case _:
                     print(f'Функции {args[0]} нет. Попробуйте снова.')
-        except IndexError as e:
-            print(f'Некорректное значение: {user_input}. Попробуйте снова.')
-        except ValueError as e:
-            print(f'Ошибка: {e}.')
-
+        except Exception:
+            pass
 
 
 def print_help():

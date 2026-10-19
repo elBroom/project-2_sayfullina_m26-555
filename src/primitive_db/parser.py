@@ -9,6 +9,7 @@ re_update = r'update (\w+) set (\w+) = ('+re_value+r') where (\w+) = ('+re_value
 
 
 def parse_insert(text: str) -> Tuple[str, list]:
+    """Парсер команды на вставку данных."""
     match = re.search(re_insert, text)
     if not match:
         raise ValueError('Формат запроса не поддерживается')
@@ -16,6 +17,7 @@ def parse_insert(text: str) -> Tuple[str, list]:
 
 
 def parse_select(text: str) -> Tuple[str, dict|None]:
+    """Парсер команды на получение данных."""
     match = re.search(re_select, text)
     if not match:
         raise ValueError('Формат запроса не поддерживается')
@@ -29,6 +31,7 @@ def parse_select(text: str) -> Tuple[str, dict|None]:
 
 
 def parse_update(text: str) -> Tuple[str, dict, dict]:
+    """Парсер команды обновление данных."""
     match = re.search(re_update, text)
     if not match:
         raise ValueError('Формат запроса не поддерживается')
@@ -40,6 +43,7 @@ def parse_update(text: str) -> Tuple[str, dict, dict]:
 
 
 def parse_delete(text: str) -> Tuple[str, dict]:
+    """Парсер команды удаление данных."""
     match = re.search(re_delete, text)
     if not match:
         raise ValueError('Формат запроса не поддерживается')
