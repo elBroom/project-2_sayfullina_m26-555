@@ -5,6 +5,7 @@ import prompt
 from .constants import FILE_META
 from .core import (
     create_table,
+    delete,
     drop_table,
     info_table,
     insert,
@@ -12,6 +13,7 @@ from .core import (
     select,
     update,
 )
+from .parser import parse_delete, parse_insert, parse_select, parse_update
 from .utils import load_metadata, load_table_data, save_metadata, save_table_data
 
 
@@ -35,24 +37,25 @@ def run():
                     metadate = drop_table(metadate, args[1])
                     save_metadata(FILE_META, metadate)
                 case 'insert':
-                    table_data = load_table_data(args[1])
-                    row = insert(metadate, args[1], args[2:])
+                    table, values = parse_insert(user_input)
+                    table_data = load_table_data(table)
+                    row = insert(metadate, table, values)
                     table_data.append(row)
-                    save_table_data(args[1], table_data)
+                    save_table_data(table, table_data)
                 case 'select':
-                    # TODO parse where
-                    where_clause = None
-                    table_data = load_table_data(args[1])
+                    table, where_clause = parse_select(user_input)
+                    table_data = load_table_data(table)
                     select(table_data, where_clause)
-                    save_table_data(args[1], table_data)
                 case 'update':
-                    # TODO parse set_clause
-                    set_clause = {}
-                    # TODO parse where
-                    where_clause = {}
-                    table_data = load_table_data(args[1])
+                    table, set_clause, where_clause = parse_update(user_input)
+                    table_data = load_table_data(table)
                     table_data = update(table_data, set_clause, where_clause)
-                    save_table_data(args[1], table_data)
+                    save_table_data(table, table_data)
+                case 'delete':
+                    table, where_clause = parse_delete(user_input)
+                    table_data = load_table_data(table)
+                    table_data = delete(table_data, where_clause)
+                    save_table_data(table, table_data)
                 case 'info':
                     cnt = len(load_table_data(args[1]))
                     info_table(metadate, args[1], cnt)
@@ -62,7 +65,7 @@ def run():
                     print_help()
                 case _:
                     print(f'Функции {args[0]} нет. Попробуйте снова.')
-        except IndexError:
+        except IndexError as e:
             print(f'Некорректное значение: {user_input}. Попробуйте снова.')
         except ValueError as e:
             print(f'Ошибка: {e}.')

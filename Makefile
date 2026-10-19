@@ -2,7 +2,10 @@ build:
 	uv build
 
 install:
-    uv tool install dist/*.whl
+	uv tool install dist/*.whl
+
+run: build install
+	database
 
 check:
 	uvx twine check dist/*
