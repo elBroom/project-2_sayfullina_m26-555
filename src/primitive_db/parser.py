@@ -1,6 +1,8 @@
 import re
 from typing import Tuple
 
+from .types import convert_type
+
 re_value = r'\"\w+\"|\d+|true|false|True|False'
 re_insert = r'insert into (\w+) values (\((?:(?:'+re_value+r'),? ?)+\))'
 re_select = r'select from (\w+)( where (\w+) = ('+re_value+r'))?'
@@ -51,12 +53,3 @@ def parse_delete(text: str) -> Tuple[str, dict]:
         match.group(1),
         {match.group(2).strip('"'): convert_type(match.group(3))},
     )
-
-def convert_type(text: str) -> int|bool|str:
-    if text.isdigit():
-        return int(text)
-    if text.lower() in ('true', 'false'):
-        return bool(text)
-    if text.startswith('"'):
-        return text.strip('"')
-    return ""
